@@ -38,35 +38,77 @@ def generate_data_subtleoutliers(n_samples, total_outliers, n_centers=3):
     all_data = np.vstack([transformed_data, outliers])
     return all_data, outliers, valid_pts
 
-def compute_fractal_dimension(data, k=5, epsilon=1e-10):
-    # Step 1: 
-    # - Compute pairwise distances between all points in the dataset
-    distances = pairwise_distances(data)  # Shape: (n_samples, n_samples)
+def compute_pairwise_distances(data):
+    """Computes pairwise Euclidean distances between points in data."""
+    data = np.array(data)
+    distances = np.linalg.norm(data[:, np.newaxis] - data, axis=2)
+    return distances
+    
+def compute_fractal_dimension(data, k, epsilon=1e-3):
+    """
+    Computes the fractal dimension of each point based on k-nearest neighbors.
+    
+    Parameters:
+        data (list or np.ndarray): The input data points (n_samples x n_features).
+        k (int): The number of nearest neighbors to consider.
+        epsilon (float): Small constant to avoid division by zero or logarithmic singularities.
+        
+    Returns:
+        fractal_dimensions (np.ndarray): Fractal dimensions for each data point.
+    """
+    data = np.array(data)
+    n_samples = data.shape[0]
+    
+    if k < 1 or n_samples <= k:
+        raise ValueError("Invalid k value: k must be between 1 and the number of points - 1.")
+    
+    # Step 1: Compute pairwise distances
+    distances = compute_pairwise_distances(data)
+    
+    # Step 2: Sort distances to find k-nearest neighbors
+    sorted_distances = np.sort(distances, axis=1)
+    sorted_distances = sorted_distances[:, 1:k+1]  # Only take k-nearest neighbors (exclude self distance)
+    
+    # Step 3: Compute local densities
+    local_densities = np.zeros(n_samples)
+    for i in range(n_samples):
+        mean_distance = np.mean(sorted_distances[i])
+        local_densities[i] = 1.0 / (mean_distance + epsilon)
+    
+    # Step 4: Compute average radii with clamping
+    radii = np.zeros(n_samples)
+    for i in range(n_samples):
+        mean_original_distance = np.mean(sorted_distances[i])
+        radii[i] = np.maximum(np.log(mean_original_distance + epsilon) / local_densities[i], epsilon)
+    
+    # ***************************************************************** #
+    #         ADDED THE FOLLOWING TO CLAMP RADII MORE ROBUSTLY          #
+    # ***************************************************************** #
+    
+    # Compute robust percentiles for normalization
+    non_zero_radii = np.sort(radii[radii > 0])  # Sort only non-zero radii
+    min_radius = non_zero_radii[max(int(0.05 * n_samples), 1)]  # 5th percentile
+    max_radius = non_zero_radii[min(int(0.95 * n_samples), n_samples - 1)]  # 95th percentile
+    min_radius = np.maximum(min_radius, epsilon)  # Ensure it's not too small
 
-    # Step 2: 
-    # - Sort distances for each point to find k-nearest neighbors
-    # - Exclude the first column (self-distance = 0), so we only keep neighbors
-    sorted_distances = np.sort(distances, axis=1)[:, 1:k+1]  # Shape: (n_samples, k)
+    # Normalize radii with softer clamping
+    for i in range(n_samples):
+        radii[i] = (radii[i] - min_radius) / (max_radius - min_radius + epsilon)
+        #radii[i] = np.maximum(radii[i], 0.1)  # Allow smaller values but avoid instability
+        radii[i] = np.maximum(radii[i], 0.0001)  # Allow smaller values but avoid instability
+    
+    # ***************************************************************** #
+    # ***************************************************************** #
 
-    # Step 3: 
-    # - Compute local densities for each point
-    # - Density is inversely proportional to the mean distance to k neighbors
-    local_densities = 1 / (np.mean(sorted_distances, axis=1) + epsilon) 
-
-    # Step 4: 
-    # - Scale the distances to k neighbors by the local density
-    # - This normalization adjusts distances to account for the density of each point's neighborhood
-    scaled_distances = sorted_distances * local_densities[:, np.newaxis] # Shape: (n_samples, k)
-
-    # Step 5: 
-    # - Compute the average radius for each point based on scaled distances
-    # - The average of scaled distances provides the normalized radius for fractal dimension calculation
-    radii = np.mean(scaled_distances, axis=1) # Shape: (n_samples,)
-
-    # Step 6: 
-    # - Calculate fractal dimension for each point
-    # - The formula is based on log(k) and the inverse of the radius
-    fractal_dimensions = np.log(k) / np.log(1 / (radii + epsilon))
+    # Step 5: Calculate fractal dimensions
+    fractal_dimensions = np.zeros(n_samples)
+    log_k = np.log(k)
+    for i in range(n_samples):
+        radius_with_epsilon = np.maximum(radii[i] + epsilon, epsilon)
+        #log_argument = np.maximum(1.0 / radius_with_epsilon, 2.0)  # Stricter lower bound (2.0)
+        log_argument = np.maximum(1.0 / radius_with_epsilon, .09)  # Stricter lower bound (2.0)
+        fractal_dimensions[i] = log_k / np.log(log_argument)
+    
     return fractal_dimensions
 
 if __name__ == "__main__":
