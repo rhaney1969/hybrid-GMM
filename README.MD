@@ -2,7 +2,7 @@
 
 This file briefly explains the background of the **Hybrid-GMM** research, that is, the application of fractal dimensional analysis to Gaussian Mixture Model (**GMM**). The **Hybrid-GMM** clustering performance is compared to the ground state, defined by the **GMM** with applied **Mahalanobis** (**M-GMM**).
 
-The directory, `data_results`, contains all generated data analysis results from the execution of our method, **Hybrid-GMM**, in comparison to the ground state **M-GMM**. These results are what is placed in our paper.
+The directory, `data_results`, contains all generated data analysis results from the execution of our method, **Hybrid-GMM**, in comparison to the ground state **M-GMM**. These results are what is placed in our paper and are stored here in compressed format `data_results.tar.gz`
 
 ## Usage
 
