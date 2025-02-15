@@ -2,7 +2,20 @@
 
 This file briefly explains the background of the **Hybrid-GMM** research, that is, the application of fractal dimensional analysis to Gaussian Mixture Model (**GMM**). The **Hybrid-GMM** clustering performance is compared to the ground state, defined by the **GMM** with applied **Mahalanobis** (**M-GMM**).
 
-The directory, `data_results`, contains all generated data analysis results from the execution of our method, **Hybrid-GMM**, in comparison to the ground state **M-GMM**. These results are what is placed in our paper and are stored here in compressed format `data_results.tar.gz`
+## Data Repository (Paper Results)
+
+All data results generated for our paper are stored in the following set of `gzip` files (for data size savings):
+
+- `samples10000.tar.gz`: 
+   - Contains data and images generated from Python code for 10,000 points.
+- `samples1000EqualsThresholds.tar.gz`: 
+  - Contains the data and images generated from the Python code for 1,000 points whereby the thresholds for **M-GMM** and **Hybrid-GMM**.
+  - This data clearly illustrates the unfair advantage that a geometric approach (**Hybrid-GMM**) has over the probablistic approach (**M-GMM**)
+    - Using this information, we empirically chose different acceptance thresholds to try and provide a more level comparison.
+- `samples1500.tar.gz`: 
+   - Contains data and images generated from the Python code for 1,500 samples.
+- `samples7000.tar.gz`: 
+   - Contains data and images generated from Python code for 7,000 samples.
 
 ## Usage
 
