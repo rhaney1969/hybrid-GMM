@@ -8,7 +8,7 @@ All data results generated for our paper are stored in the following set of `gzi
 
 - `samples10000.tar.gz`: 
    - Contains data and images generated from Python code for 10,000 points.
-- `samples1000EqualsThresholds.tar.gz`: 
+- `empiricalThresholds.tar.gz`: 
   - Contains the data and images generated from the Python code for 1,000 points whereby the thresholds for **M-GMM** and **Hybrid-GMM**.
   - This data clearly illustrates the unfair advantage that a geometric approach (**Hybrid-GMM**) has over the probablistic approach (**M-GMM**)
     - Using this information, we empirically chose different acceptance thresholds to try and provide a more level comparison.
